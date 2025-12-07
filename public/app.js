@@ -58,8 +58,6 @@ function setupEventListeners() {
     document.getElementById('toggle-voting-btn').addEventListener('click', handleToggleVoting);
     document.getElementById('reset-votes-btn').addEventListener('click', handleResetVotes);
     document.getElementById('show-results-btn').addEventListener('click', handleShowResults);
-    document.getElementById('show-votes-detail-btn').addEventListener('click', handleShowVotesDetail);
-    document.getElementById('back-to-admin-btn').addEventListener('click', () => showScreen('admin-screen'));
     
     // Slideshow controls
     document.getElementById('prev-slide').addEventListener('click', () => changeSlide(-1));
@@ -407,70 +405,6 @@ async function handleShowResults() {
     }
 }
 
-// Admin: Mostra dettaglio voti
-async function handleShowVotesDetail() {
-    try {
-        const response = await fetch('/api/votes-detail');
-        
-        if (!response.ok) {
-            alert('Errore nel caricamento dei dettagli voti');
-            return;
-        }
-        
-        const votesDetail = await response.json();
-        displayVotesDetail(votesDetail);
-        showScreen('votes-detail-screen');
-    } catch (error) {
-        alert('Errore nel caricamento dei dettagli');
-    }
-}
-
-// Mostra dettaglio voti
-function displayVotesDetail(votesDetail) {
-    const container = document.getElementById('votes-detail-container');
-    container.innerHTML = '';
-    
-    if (votesDetail.length === 0) {
-        container.innerHTML = '<p class="message">Nessun voto presente</p>';
-        return;
-    }
-    
-    votesDetail.forEach(vote => {
-        const voteDiv = document.createElement('div');
-        voteDiv.className = 'votes-detail-item';
-        
-        let categoriesHtml = '';
-        Object.values(vote.categories).forEach(category => {
-            categoriesHtml += `
-                <div class="vote-category">
-                    <h4>${category.categoryName}</h4>
-                    <div class="vote-selections">
-                        <div class="vote-selection">
-                            <span class="vote-position first">1° posto</span>
-                            <span>${category.selections.first}</span>
-                        </div>
-                        <div class="vote-selection">
-                            <span class="vote-position second">2° posto</span>
-                            <span>${category.selections.second}</span>
-                        </div>
-                        <div class="vote-selection">
-                            <span class="vote-position third">3° posto</span>
-                            <span>${category.selections.third}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        voteDiv.innerHTML = `
-            <h3>👤 ${vote.nickname}</h3>
-            ${categoriesHtml}
-        `;
-        
-        container.appendChild(voteDiv);
-    });
-}
-
 // Aggiorna stato admin
 async function updateAdminStatus() {
     try {
@@ -502,8 +436,8 @@ function createSlideshow() {
         
         // Primi 3 per il podio
         const top3 = categoryResults.ranking.slice(0, 3);
-        // 4° e 5° posto
-        const others = categoryResults.ranking.slice(3, 5);
+        // Tutti gli altri (dal 4° in poi)
+        const others = categoryResults.ranking.slice(3);
         
         slide.innerHTML = `
             <h2>${categoryResults.categoryName}</h2>
@@ -525,7 +459,7 @@ function createSlideshow() {
                 }).join('')}
             </div>
             
-            <!-- Altri classificati (4° e 5°) -->
+            <!-- Altri classificati (dal 4° in poi - TUTTI) -->
             ${others.length > 0 ? `
                 <div class="other-rankings">
                     <h3>Altri Classificati</h3>
